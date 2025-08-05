@@ -1,0 +1,509 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Glog.AI",
+          "organization": "Glog.AI",
+          "fullName": "Glog, Making software more secure",
+          "version": "1.0.0",
+          "semanticVersion": "1.0.0",
+          "informationUri": "https://www.glog.ai",
+          "rules": [
+            {
+              "id": "glog-a2ae6202-958d-4fa0-835d-0841fa075070",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `strncpy` function in C++ is considered unsafe because it does not guarantee that a null character will be appended at the end of the destination string. This can lead to buffer overflow vulnerabilities if the source string is longer than the destination buffer. In the provided code snippet, if `cdprop.uuid.bytes` is longer than 16 bytes, it will lead to a buffer overflow.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, it is recommended to use safer string handling functions that ensure null-termination of the destination string. In C++, this can be achieved by using the `std::string` class or the `strlcpy` function if available.\n\n## Source Code Fix\n\nReplace the `strncpy` function with `memcpy` and manually add a null character at the end of the destination string. Here is the fixed code:\n\n```cpp\nmemcpy(p_prop->uuid.bytes, cdprop.uuid.bytes, 16);\np_prop->uuid.bytes[15] = '\\0';\n```\n\n## Library Dependencies\n\nThe code example requires the following library to execute properly:\n\n- `cstring` (for `memcpy` function)\n\n## References\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n\nPlease note that the links provided are accessible to anonymous users at the time of writing this report."
+              },
+              "properties": {
+                "tags": [
+                  "DS111237"
+                ]
+              }
+            },
+            {
+              "id": "glog-7e04c3e7-1065-4524-af6c-1a4ddb893b9d",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `malloc` function in C++ is used to dynamically allocate memory at runtime. However, it can be a source of vulnerabilities if not used properly. If the size of the memory to be allocated is not properly validated or controlled, it can lead to various security issues such as buffer overflows, memory corruption, or denial of service attacks.\n\nIn the given code snippet, `malloc(sizeof(CUmemAccessDesc))`, the `malloc` function is used to allocate memory of size equal to the size of `CUmemAccessDesc`. If the size of `CUmemAccessDesc` is not properly controlled or validated, it can lead to the aforementioned security issues.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should always validate and control the size of the memory to be allocated. Avoid using user input directly as the size for `malloc`. If user input is used, ensure it is properly sanitized and within acceptable limits. \n\n## Source Code Fix Recommendation\n\nAssuming `CUmemAccessDesc` is a struct, a safer way to allocate memory would be:\n\n```cpp\nCUmemAccessDesc* desc = new(std::nothrow) CUmemAccessDesc;\nif (desc == nullptr) {\n    // Handle error\n}\n```\n\nThis code uses the `new` operator to allocate memory, which is safer than `malloc` because it automatically handles the size calculation. The `nothrow` variant is used to return a null pointer if the allocation fails, instead of throwing an exception.\n\n## Library Dependencies\n\nThe code snippet does not provide enough context to determine the exact library dependencies. However, the `CUmemAccessDesc` type suggests that this code might be using the CUDA library.\n\n## OWASP and CWE Links\n\n- [CWE-131: Incorrect Calculation of Buffer Size](https://cwe.mitre.org/data/definitions/131.html)"
+              },
+              "properties": {
+                "tags": [
+                  "DS161085"
+                ]
+              }
+            },
+            {
+              "id": "glog-115901c6-6485-4ce2-8f25-8cee68aae8e8",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `strncpy` function in C++ is considered unsafe because it does not guarantee that a null character will be appended at the end of the destination string. This can lead to buffer overflow vulnerabilities if the source string is longer than the destination buffer. In the provided code snippet, `strncpy` is used to copy 16 bytes from `CUuid.bytes` to `uuid->bytes`. If `uuid->bytes` is not large enough to hold 16 bytes, this could result in a buffer overflow.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should use safer string copy functions that ensure null-termination and prevent buffer overflows. In C++, this can be achieved using the `std::copy` function from the `<algorithm>` library or by using `std::string` objects.\n\n## Source Code Fix Recommendation\n\nHere is a safer alternative using `std::copy`:\n\n```cpp\n#include <algorithm>\n\n// Ensure uuid->bytes has enough space\nstd::copy(CUuid.bytes, CUuid.bytes + 16, uuid->bytes);\n```\n\nOr, if `CUuid.bytes` and `uuid->bytes` are `std::string` objects:\n\n```cpp\nuuid->bytes = CUuid.bytes.substr(0, 16);\n```\n\n## Library Dependencies\n\nThe code example requires the following libraries:\n\n- `<algorithm>` for `std::copy`\n- `<string>` for `std::string`\n\n## References\n\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n\nPlease note that the links provided are accessible to anonymous users at the time of writing this report."
+              },
+              "properties": {
+                "tags": [
+                  "DS111237"
+                ]
+              }
+            },
+            {
+              "id": "glog-8e97d599-43fd-421c-bfa1-689f3560afa2",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `strncpy` function in C++ is a common source of vulnerabilities due to its potential to cause buffer overflow. The function copies a specified number of characters from one string to another. If the source string is longer than the specified number of characters, the function does not append a null character to the destination string, which can lead to buffer overflow. This can be exploited to execute arbitrary code, cause a denial of service, or escalate privileges.\n\nIn the provided code snippet, `strncpy(p_prop->luid, cdprop.luid, 8)`, the function is copying 8 characters from `cdprop.luid` to `p_prop->luid`. If `cdprop.luid` is longer than 8 characters, `p_prop->luid` will not be null-terminated, which can lead to buffer overflow.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should replace `strncpy` with safer functions such as `strlcpy` or `snprintf`. These functions ensure that the destination string is null-terminated, preventing buffer overflow.\n\n## Source Code Fix Recommendation\n\nReplace the `strncpy` function with `strlcpy` or `snprintf` as follows:\n\n```cpp\nstrlcpy(p_prop->luid, cdprop.luid, sizeof(p_prop->luid));\n```\n\nor\n\n```cpp\nsnprintf(p_prop->luid, sizeof(p_prop->luid), \"%s\", cdprop.luid);\n```\n\n## Library Dependencies\n\nThe code example requires the following library dependencies:\n\n- `cstring` or `string.h` for `strncpy`, `strlcpy`, or `snprintf`\n- `cstdio` or `stdio.h` for `snprintf`\n\n## References\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')](https://cwe.mitre.org/data/definitions/120.html)\n\nPlease note that the links provided are accessible to anonymous users at the time of writing this report."
+              },
+              "properties": {
+                "tags": [
+                  "DS111237"
+                ]
+              }
+            },
+            {
+              "id": "glog-7e8138bb-43f5-4c95-b023-96d1690d2520",
+              "help": {
+                "text": "",
+                "markdown": "## Description\n\nThe `strncpy` function in C++ is considered unsafe because it does not guarantee that a null character will be appended at the end of the destination string. This can lead to buffer overflow vulnerabilities if the source string is longer than the destination buffer. This is because `strncpy` will copy characters from the source string to the destination buffer until it has copied the specified number of characters, even if the source string is longer than the destination buffer.\n\n## Mitigation Advice\n\nTo mitigate this vulnerability, you should use safer string copy functions that guarantee null-termination of the destination string and prevent buffer overflows. In C++, this can be achieved by using the `strlcpy` function, which is designed to be safer, more consistent, and less error-prone.\n\n## Source Code Fix Recommendation\n\nReplace the `strncpy` function with the `strlcpy` function:\n\n```cpp\nstrlcpy(p_prop->name, cdprop.name, sizeof(p_prop->name));\n```\n\n## Library Dependencies\n\nThe `strlcpy` function is not a standard C++ function, but it is included in some libraries such as the BSD library. If you are not using a platform that includes this function, you may need to implement it yourself or use a third-party library that provides it.\n\n## References\n\n- [OWASP C++ Secure Coding Practices](https://cheatsheetseries.owasp.org/cheatsheets/C-Based_Toolchain_Hardening_Cheat_Sheet.html)\n- [CWE-119: Improper Restriction of Operations within the Bounds of a Memory Buffer](https://cwe.mitre.org/data/definitions/119.html)\n\nPlease note that the links provided are active and accessible to anonymous users at the time of writing this report."
+              },
+              "properties": {
+                "tags": [
+                  "DS111237"
+                ]
+              }
+            }
+          ],
+          "language": "en-US",
+          "contents": [
+            "localizedData",
+            "nonLocalizedData"
+          ],
+          "isComprehensive": false
+        }
+      },
+      "language": "en-US",
+      "results": [
+        {
+          "ruleId": "glog-a2ae6202-958d-4fa0-835d-0841fa075070",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "\"Detected Use of Prohibited C Function (strncpy)\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                },
+                "region": {
+                  "startLine": 2490,
+                  "startColumn": 4,
+                  "endLine": 2490,
+                  "endColumn": 54,
+                  "charOffset": 107601,
+                  "charLength": 50,
+                  "snippet": {
+                    "text": "strncpy(p_prop->uuid.bytes, cdprop.uuid.bytes, 16)",
+                    "rendered": {
+                      "text": "strncpy(p_prop->uuid.bytes, cdprop.uuid.bytes, 16)",
+                      "markdown": "`strncpy(p_prop->uuid.bytes, cdprop.uuid.bytes, 16)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107601,
+                        "charLength": 50
+                      },
+                      "insertedContent": {
+                        "text": "strcpy_s(p_prop->uuid.bytes,  16,  cdprop.uuid.bytes)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107601,
+                        "charLength": 50
+                      },
+                      "insertedContent": {
+                        "text": "strlcpy(p_prop->uuid.bytes,  cdprop.uuid.bytes,  16)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.BannedFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-7e04c3e7-1065-4524-af6c-1a4ddb893b9d",
+          "kind": "fail",
+          "level": "note",
+          "message": {
+            "text": "Detected Vulnerability in C Function (malloc)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                },
+                "region": {
+                  "startLine": 2897,
+                  "startColumn": 48,
+                  "endLine": 2897,
+                  "endColumn": 78,
+                  "charOffset": 127147,
+                  "charLength": 30,
+                  "snippet": {
+                    "text": "malloc(sizeof(CUmemAccessDesc)",
+                    "rendered": {
+                      "text": "malloc(sizeof(CUmemAccessDesc)",
+                      "markdown": "`malloc(sizeof(CUmemAccessDesc)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "If the value provided to malloc is the result of unsafe integer math, it can result in an exploitable condition. "
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 127147,
+                        "charLength": 30
+                      },
+                      "insertedContent": {
+                        "text": "calloc(<number of elements>, <size of each element>)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "BestPractice",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.ProblematicFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-115901c6-6485-4ce2-8f25-8cee68aae8e8",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "\"Detected Use of Prohibited C Function (strncpy)\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                },
+                "region": {
+                  "startLine": 3364,
+                  "startColumn": 6,
+                  "endLine": 3364,
+                  "endColumn": 43,
+                  "charOffset": 148167,
+                  "charLength": 37,
+                  "snippet": {
+                    "text": "strncpy(uuid->bytes, CUuid.bytes, 16)",
+                    "rendered": {
+                      "text": "strncpy(uuid->bytes, CUuid.bytes, 16)",
+                      "markdown": "`strncpy(uuid->bytes, CUuid.bytes, 16)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 148167,
+                        "charLength": 37
+                      },
+                      "insertedContent": {
+                        "text": "strcpy_s(uuid->bytes,  16,  CUuid.bytes)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 148167,
+                        "charLength": 37
+                      },
+                      "insertedContent": {
+                        "text": "strlcpy(uuid->bytes,  CUuid.bytes,  16)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.BannedFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-8e97d599-43fd-421c-bfa1-689f3560afa2",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "\"Prohibited strncpy C Function Identified\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                },
+                "region": {
+                  "startLine": 2491,
+                  "startColumn": 4,
+                  "endLine": 2491,
+                  "endColumn": 41,
+                  "charOffset": 107657,
+                  "charLength": 37,
+                  "snippet": {
+                    "text": "strncpy(p_prop->luid, cdprop.luid, 8)",
+                    "rendered": {
+                      "text": "strncpy(p_prop->luid, cdprop.luid, 8)",
+                      "markdown": "`strncpy(p_prop->luid, cdprop.luid, 8)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107657,
+                        "charLength": 37
+                      },
+                      "insertedContent": {
+                        "text": "strcpy_s(p_prop->luid,  8,  cdprop.luid)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107657,
+                        "charLength": 37
+                      },
+                      "insertedContent": {
+                        "text": "strlcpy(p_prop->luid,  cdprop.luid,  8)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.BannedFunction"
+            ]
+          }
+        },
+        {
+          "ruleId": "glog-7e8138bb-43f5-4c95-b023-96d1690d2520",
+          "kind": "fail",
+          "level": "error",
+          "message": {
+            "text": "\"Detected Use of Prohibited C Function (strncpy)\""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                },
+                "region": {
+                  "startLine": 2489,
+                  "startColumn": 4,
+                  "endLine": 2489,
+                  "endColumn": 43,
+                  "charOffset": 107556,
+                  "charLength": 39,
+                  "snippet": {
+                    "text": "strncpy(p_prop->name, cdprop.name, 256)",
+                    "rendered": {
+                      "text": "strncpy(p_prop->name, cdprop.name, 256)",
+                      "markdown": "`strncpy(p_prop->name, cdprop.name, 256)`"
+                    }
+                  },
+                  "sourceLanguage": "c"
+                }
+              }
+            }
+          ],
+          "fixes": [
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107556,
+                        "charLength": 39
+                      },
+                      "insertedContent": {
+                        "text": "strcpy_s(p_prop->name,  256,  cdprop.name)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "description": {
+                "text": "strncpy is dangerous, as if the source contains 'n' or more characters, it will not null terminate the destination."
+              },
+              "artifactChanges": [
+                {
+                  "artifactLocation": {
+                    "uri": "hipnv/include/hip/nvidia_detail/nvidia_hip_runtime_api.h"
+                  },
+                  "replacements": [
+                    {
+                      "deletedRegion": {
+                        "charOffset": 107556,
+                        "charLength": 39
+                      },
+                      "insertedContent": {
+                        "text": "strlcpy(p_prop->name,  cdprop.name,  256)"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "DevSkimSeverity": "Important",
+            "DevSkimConfidence": "High",
+            "tags": [
+              "API.DangerousAPI.BannedFunction"
+            ]
+          }
+        }
+      ],
+      "newlineSequences": [
+        "\r\n",
+        "\n"
+      ]
+    }
+  ]
+}
